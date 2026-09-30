@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}JobTrack — Track. Apply. Follow Up. Get Hired.{% endblock %}
+{% block public_content %}
+
+<section class="landing-hero">
+  <div class="container">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6">
+        <div class="hero-badge">🚀 Final Year Project — Python Flask</div>
+        <h1 class="hero-title">Track. Apply.<br>Follow Up.<br><span class="text-gradient">Get Hired.</span></h1>
+        <p class="hero-sub">Stop losing track of where you applied. JobTrack keeps every application, interview, and follow-up organized in one professional dashboard.</p>
+        <div class="d-flex gap-3 flex-wrap">
+          <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg px-4">Get Started Free</a>
+          <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary btn-lg px-4">Sign In</a>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="hero-preview">
+          <div class="preview-stat-row">
+            <div class="preview-stat"><span>24</span><small>Total</small></div>
+            <div class="preview-stat green"><span>3</span><small>Offers</small></div>
+            <div class="preview-stat blue"><span>7</span><small>Interviews</small></div>
+            <div class="preview-stat orange"><span>5</span><small>Shortlisted</small></div>
+          </div>
+          <div class="preview-list">
+            <div class="preview-item"><span class="preview-co">Google</span><span class="badge-status interview">Interview</span></div>
+            <div class="preview-item"><span class="preview-co">Microsoft</span><span class="badge-status offer">Offer</span></div>
+            <div class="preview-item"><span class="preview-co">Amazon</span><span class="badge-status shortlisted">Shortlisted</span></div>
+            <div class="preview-item"><span class="preview-co">Flipkart</span><span class="badge-status applied">Applied</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="landing-section bg-white">
+  <div class="container">
+    <div class="section-header text-center mb-5">
+      <h2>Everything you need to manage your job search</h2>
+      <p>Built for students and professionals who take their career seriously.</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-4"><div class="feature-card"><div class="feature-icon"><i class="bi bi-collection"></i></div><h5>Application Tracking</h5><p>Track every application with company, role, status, salary, recruiter details and notes.</p></div></div>
+      <div class="col-md-4"><div class="feature-card"><div class="feature-icon blue"><i class="bi bi-camera-video"></i></div><h5>Interview Management</h5><p>Log interview rounds, dates, types and results. Never miss an upcoming interview.</p></div></div>
+      <div class="col-md-4"><div class="feature-card"><div class="feature-icon green"><i class="bi bi-bell"></i></div><h5>Follow-up Reminders</h5><p>Set follow-up dates and get alerted when they are overdue so you never miss a chance.</p></div></div>
+      <div class="col-md-4"><div class="feature-card"><div class="feature-icon purple"><i class="bi bi-bar-chart-line"></i></div><h5>Analytics Dashboard</h5><p>Visualize your job search with charts showing status distribution and monthly trends.</p></div></div>
+      <div class="col-md-4"><div class="feature-card"><div class="feature-icon orange"><i class="bi bi-file-earmark-person"></i></div><h5>Resume Management</h5><p>Upload and manage multiple resume versions. Link a resume to each application.</p></div></div>
+      <div class="col-md-4"><div class="feature-card"><div class="feature-icon red"><i class="bi bi-shield-lock"></i></div><h5>Secure & Private</h5><p>Your data is private. Each account is isolated — no one else can see your applications.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="landing-section">
+  <div class="container">
+    <div class="section-header text-center mb-5"><h2>How it works</h2></div>
+    <div class="row g-4 justify-content-center">
+      <div class="col-md-3 text-center"><div class="step-num">1</div><h6 class="mt-3 fw-700">Create Account</h6><p class="text-muted small">Register with your email in seconds.</p></div>
+      <div class="col-md-3 text-center"><div class="step-num">2</div><h6 class="mt-3 fw-700">Add Applications</h6><p class="text-muted small">Log every job you apply to with all details.</p></div>
+      <div class="col-md-3 text-center"><div class="step-num">3</div><h6 class="mt-3 fw-700">Track Progress</h6><p class="text-muted small">Update statuses, add interviews and follow-ups.</p></div>
+      <div class="col-md-3 text-center"><div class="step-num">4</div><h6 class="mt-3 fw-700">Get Hired</h6><p class="text-muted small">Stay organized and never let an opportunity slip.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="landing-cta">
+  <div class="container text-center">
+    <h2>Ready to organize your job search?</h2>
+    <p class="text-muted mb-4">Join and start tracking your applications today — completely free.</p>
+    <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg px-5">Get Started Free</a>
+  </div>
+</section>
+
+<footer class="landing-footer">
+  <div class="container text-center">
+    <span class="brand-icon me-2" style="width:24px;height:24px;font-size:.8rem;"><i class="bi bi-briefcase-fill"></i></span>
+    <strong>JobTrack</strong> &nbsp;•&nbsp; Final Year Project &nbsp;•&nbsp; Python Flask + SQLite
+  </div>
+</footer>
+{% endblock %}

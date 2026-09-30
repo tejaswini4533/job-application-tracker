@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if interview else 'Add' }} Interview — JobTrack{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>{{ 'Edit' if interview else 'Add' }} Interview</h1>
+  <p>{{ application.company }} — {{ application.role }}</p>
+</div>
+<div class="row justify-content-center">
+  <div class="col-xl-7">
+    <div class="card">
+      <div class="card-header-custom"><h6><i class="bi bi-camera-video"></i> Interview Details</h6></div>
+      <div class="card-body p-4">
+        <form method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Interview Date <span class="text-danger">*</span></label>
+              <input type="date" name="interview_date" class="form-control" required value="{{ interview.interview_date.isoformat() if interview else '' }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Interview Time</label>
+              <input type="time" name="interview_time" class="form-control" value="{{ interview.interview_time if interview else '' }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Interview Type</label>
+              <select name="interview_type" class="form-select">
+                {% for t in INTERVIEW_TYPES %}<option {% if (interview and interview.interview_type==t) or (not interview and t=='Video Call') %}selected{% endif %}>{{ t }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Round</label>
+              <select name="interview_round" class="form-select">
+                {% for r in INTERVIEW_ROUNDS %}<option {% if (interview and interview.interview_round==r) or (not interview and r=='Round 1') %}selected{% endif %}>{{ r }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Location / Meeting Link</label>
+              <input name="location_or_link" class="form-control" value="{{ interview.location_or_link if interview else '' }}" placeholder="Office address or https://meet.google.com/...">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Result</label>
+              <select name="result" class="form-select">
+                {% for r in INTERVIEW_RESULTS %}<option {% if (interview and interview.result==r) or (not interview and r=='Pending') %}selected{% endif %}>{{ r }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Notes</label>
+              <textarea name="notes" rows="4" class="form-control" placeholder="Topics covered, feedback, preparation notes…">{{ interview.notes if interview else '' }}</textarea>
+            </div>
+          </div>
+          <div class="d-flex justify-content-between mt-4">
+            <a href="{{ url_for('applications.detail', app_id=application.id) }}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary px-4"><i class="bi bi-check2-circle"></i> Save Interview</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

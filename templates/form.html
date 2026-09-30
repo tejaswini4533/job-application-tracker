@@ -1,0 +1,40 @@
+
+{% extends "base.html" %}
+{% block title %}{{ title }} • JobTrack{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-xl-9">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div><div class="eyebrow">APPLICATION MANAGEMENT</div><h2 class="mb-1">{{ title }}</h2><p class="text-secondary mb-0">Capture the details you need to manage the opportunity.</p></div>
+      <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back</a>
+    </div>
+    <form method="post" class="card app-card">
+      <div class="card-body p-4">
+        <h5 class="section-title">Job Details</h5>
+        <div class="row g-3">
+          <div class="col-md-6"><label class="form-label">Company *</label><input name="company" required class="form-control" value="{{ application.company if application else '' }}"></div>
+          <div class="col-md-6"><label class="form-label">Role *</label><input name="role" required class="form-control" value="{{ application.role if application else '' }}"></div>
+          <div class="col-md-4"><label class="form-label">Location</label><input name="location" class="form-control" placeholder="Hyderabad / Remote" value="{{ application.location if application else '' }}"></div>
+          <div class="col-md-4"><label class="form-label">Job Type</label><select name="job_type" class="form-select">{% for x in ['Full-time','Internship','Part-time','Contract'] %}<option {% if (application and application.job_type==x) or (not application and x=='Full-time') %}selected{% endif %}>{{ x }}</option>{% endfor %}</select></div>
+          <div class="col-md-4"><label class="form-label">Source</label><select name="source" class="form-select">{% for x in ['LinkedIn','Naukri','Company Website','Internshala','College Placement','Referral','Other'] %}<option {% if (application and application.source==x) or (not application and x=='Other') %}selected{% endif %}>{{ x }}</option>{% endfor %}</select></div>
+          <div class="col-md-4"><label class="form-label">Applied Date</label><input type="date" name="applied_date" class="form-control" value="{{ application.applied_date.isoformat() if application and application.applied_date else '' }}"></div>
+          <div class="col-md-4"><label class="form-label">Status</label><select name="status" class="form-select">{% for s in STATUSES %}<option {% if (application and application.status==s) or (not application and s=='Applied') %}selected{% endif %}>{{ s }}</option>{% endfor %}</select></div>
+          <div class="col-md-4"><label class="form-label">Salary / CTC</label><input name="salary" class="form-control" placeholder="e.g. 6 LPA" value="{{ application.salary if application else '' }}"></div>
+          <div class="col-12"><label class="form-label">Job URL</label><input name="job_url" type="url" class="form-control" placeholder="https://..." value="{{ application.job_url if application else '' }}"></div>
+        </div>
+        <hr class="my-4">
+        <h5 class="section-title">Recruiter / Contact</h5>
+        <div class="row g-3">
+          <div class="col-md-6"><label class="form-label">Contact Name</label><input name="contact_name" class="form-control" value="{{ application.contact_name if application else '' }}"></div>
+          <div class="col-md-6"><label class="form-label">Contact Email</label><input name="contact_email" type="email" class="form-control" value="{{ application.contact_email if application else '' }}"></div>
+          <div class="col-12"><label class="form-label">Notes</label><textarea name="notes" rows="5" class="form-control" placeholder="Interview date, recruiter feedback, preparation topics, follow-up reminders...">{{ application.notes if application else '' }}</textarea></div>
+        </div>
+      </div>
+      <div class="card-footer bg-white p-4 d-flex justify-content-end gap-2">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+        <button class="btn btn-primary px-4"><i class="bi bi-check2-circle"></i> Save Application</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+{% block title %}{{ application.company }} — JobTrack{% endblock %}
+{% block content %}
+
+<div class="page-header d-flex justify-content-between align-items-start flex-wrap gap-3">
+  <div>
+    <h1 style="font-size:1.4rem;">{{ application.company }}</h1>
+    <p class="mb-0">{{ application.role }} &nbsp;·&nbsp; <span class="status-badge status-{{ application.status|lower|replace(' ','-') }}">{{ application.status }}</span></p>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('applications.edit', app_id=application.id) }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil"></i> Edit</a>
+    <button class="btn btn-outline-danger btn-sm"
+      onclick="confirmDelete('{{ url_for('applications.delete', app_id=application.id) }}','{{ application.company|replace("'","") }} — {{ application.role|replace("'","") }}')">
+      <i class="bi bi-trash"></i> Delete
+    </button>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-xl-8">
+    <!-- Job details -->
+    <div class="card mb-4">
+      <div class="card-header-custom"><h6><i class="bi bi-briefcase"></i> Job Details</h6></div>
+      <div class="card-body p-4">
+        <div class="row g-3">
+          {% set fields = [('Status', application.status),('Job Type', application.job_type),('Location', application.location or '—'),('Salary / CTC', application.salary or '—'),('Applied Date', application.applied_date.strftime('%d %b %Y') if application.applied_date else '—'),('Source', application.source)] %}
+          {% for label, value in fields %}
+          <div class="col-sm-6 col-lg-4">
+            <div class="detail-label">{{ label }}</div>
+            {% if label == 'Status' %}<span class="status-badge status-{{ value|lower|replace(' ','-') }}">{{ value }}</span>
+            {% else %}<div style="font-size:.875rem;">{{ value }}</div>{% endif %}
+          </div>
+          {% endfor %}
+          {% if application.contact_name %}
+          <div class="col-sm-6 col-lg-4">
+            <div class="detail-label">Recruiter</div>
+            <div style="font-size:.875rem;">{{ application.contact_name }}</div>
+          </div>
+          {% endif %}
+          {% if application.contact_email %}
+          <div class="col-sm-6 col-lg-4">
+            <div class="detail-label">Recruiter Email</div>
+            <div style="font-size:.875rem;"><a href="mailto:{{ application.contact_email }}">{{ application.contact_email }}</a></div>
+          </div>
+          {% endif %}
+          {% if application.job_url %}
+          <div class="col-12">
+            <div class="detail-label">Job URL</div>
+            <a href="{{ application.job_url }}" target="_blank" rel="noopener" style="font-size:.875rem;word-break:break-all;">{{ application.job_url }}</a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Status update -->
+    <div class="card mb-4">
+      <div class="card-header-custom"><h6><i class="bi bi-arrow-repeat"></i> Update Status</h6></div>
+      <div class="card-body p-4">
+        <form method="post" action="{{ url_for('applications.update_status', app_id=application.id) }}" class="d-flex gap-3 align-items-center flex-wrap">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <select name="status" class="form-select" style="max-width:200px;">
+            {% for s in STATUSES %}<option value="{{ s }}" {% if application.status==s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+          </select>
+          <button class="btn btn-primary btn-sm"><i class="bi bi-check2"></i> Update</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    {% if application.notes %}
+    <div class="card mb-4">
+      <div class="card-header-custom"><h6><i class="bi bi-journal-text"></i> Notes</h6></div>
+      <div class="card-body p-4"><div class="notes-box">{{ application.notes }}</div></div>
+    </div>
+    {% endif %}
+
+    <!-- Interviews -->
+    <div class="card">
+      <div class="card-header-custom d-flex justify-content-between align-items-center">
+        <h6><i class="bi bi-camera-video"></i> Interviews</h6>
+        <a href="{{ url_for('interviews.add', app_id=application.id) }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Add Interview</a>
+      </div>
+      {% if interviews %}
+      <div class="table-responsive">
+        <table class="table dash-table mb-0">
+          <thead><tr><th>Date</th><th>Type</th><th>Round</th><th>Result</th><th>Notes</th><th></th></tr></thead>
+          <tbody>
+          {% for iv in interviews %}
+          <tr>
+            <td>
+              <div class="fw-600">{{ iv.interview_date.strftime('%d %b %Y') }}</div>
+              {% if iv.interview_time %}<small class="text-muted">{{ iv.interview_time }}</small>{% endif %}
+            </td>
+            <td class="text-muted small">{{ iv.interview_type }}</td>
+            <td class="text-muted small">{{ iv.interview_round }}</td>
+            <td>
+              <span class="badge {% if iv.result=='Passed' %}bg-success{% elif iv.result=='Failed' %}bg-danger{% elif iv.result=='Pending' %}bg-warning text-dark{% else %}bg-secondary{% endif %}" style="font-size:.7rem;">{{ iv.result }}</span>
+            </td>
+            <td class="text-muted small">{{ iv.notes[:50]+'…' if iv.notes and iv.notes|length>50 else iv.notes or '—' }}</td>
+            <td class="text-end">
+              <a href="{{ url_for('interviews.edit', interview_id=iv.id) }}" class="btn btn-xs btn-light"><i class="bi bi-pencil"></i></a>
+              <form class="d-inline" method="post" action="{{ url_for('interviews.delete', interview_id=iv.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-xs btn-light text-danger" onclick="return confirm('Delete this interview?')"><i class="bi bi-trash"></i></button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state py-4">
+        <i class="bi bi-camera-video-off"></i>
+        <p>No interviews logged. <a href="{{ url_for('interviews.add', app_id=application.id) }}">Add one</a>.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Right sidebar -->
+  <div class="col-xl-4">
+    <!-- Application timeline -->
+    <div class="card mb-4">
+      <div class="card-header-custom"><h6><i class="bi bi-diagram-3"></i> Application Timeline</h6></div>
+      <div class="card-body p-4">
+        {% set status_order = ['Saved','Applied','Shortlisted','Interview','Offer'] %}
+        {% set current_idx = status_order.index(application.status) if application.status in status_order else -1 %}
+        <ul class="timeline">
+          {% for s in status_order %}
+          {% set idx = loop.index0 %}
+          <li class="timeline-item">
+            <div class="timeline-dot {% if idx < current_idx %}done{% elif idx == current_idx %}active{% endif %}"></div>
+            <div class="timeline-label {% if idx < current_idx %}done{% elif idx == current_idx %}active{% endif %}">{{ s }}</div>
+          </li>
+          {% endfor %}
+          {% if application.status == 'Rejected' %}
+          <li class="timeline-item">
+            <div class="timeline-dot" style="background:#ef4444;border-color:#ef4444;"></div>
+            <div class="timeline-label" style="color:#ef4444;">Rejected</div>
+          </li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+
+    <!-- Follow-up -->
+    <div class="card mb-4">
+      <div class="card-header-custom"><h6><i class="bi bi-bell"></i> Follow-up</h6></div>
+      <div class="card-body p-4">
+        {% if application.follow_up_date %}
+          <div class="detail-label">Date</div>
+          <div class="mb-2 {% if application.is_follow_up_overdue %}text-danger fw-600{% endif %}" style="font-size:.875rem;">
+            {{ application.follow_up_date.strftime('%d %b %Y') }}
+            {% if application.is_follow_up_overdue %}<span class="badge bg-danger ms-1" style="font-size:.65rem;">Overdue</span>{% endif %}
+          </div>
+          {% if application.follow_up_notes %}
+          <div class="detail-label">Notes</div>
+          <div class="text-muted small mb-3">{{ application.follow_up_notes }}</div>
+          {% endif %}
+          {% if not application.follow_up_done %}
+          <form method="post" action="{{ url_for('followups.complete', app_id=application.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-success btn-sm w-100"><i class="bi bi-check2"></i> Mark as Done</button>
+          </form>
+          {% else %}
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-success"><i class="bi bi-check-circle"></i> Completed</span>
+            <form method="post" action="{{ url_for('followups.reopen', app_id=application.id) }}" class="d-inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-xs btn-outline-secondary">Reopen</button>
+            </form>
+          </div>
+          {% endif %}
+        {% else %}
+          <p class="text-muted small mb-3">No follow-up set.</p>
+          <a href="{{ url_for('applications.edit', app_id=application.id) }}" class="btn btn-outline-primary btn-sm w-100">Set Follow-up</a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Resume -->
+    <div class="card">
+      <div class="card-header-custom"><h6><i class="bi bi-file-earmark-person"></i> Resume</h6></div>
+      <div class="card-body p-4">
+        {% if application.resume %}
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <i class="bi bi-file-earmark-pdf text-danger" style="font-size:1.5rem;"></i>
+            <div>
+              <div class="fw-600 small">{{ application.resume.original_name }}</div>
+              <div class="text-muted" style="font-size:.72rem;">{{ application.resume.uploaded_at.strftime('%d %b %Y') }}</div>
+            </div>
+          </div>
+          <a href="{{ url_for('resumes.download', resume_id=application.resume.id) }}" class="btn btn-outline-primary btn-sm w-100"><i class="bi bi-download"></i> Download</a>
+        {% else %}
+          <p class="text-muted small mb-3">No resume linked.</p>
+          <a href="{{ url_for('applications.edit', app_id=application.id) }}" class="btn btn-outline-secondary btn-sm w-100">Link Resume</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <h6 class="modal-title text-danger"><i class="bi bi-trash"></i> Delete Application</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <p class="mb-1 small text-muted">Delete:</p>
+        <strong id="deleteTarget" style="font-size:.9rem;"></strong>
+        <p class="text-muted small mt-2 mb-0">This cannot be undone.</p>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <form id="deleteForm" method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-sm btn-danger">Delete</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

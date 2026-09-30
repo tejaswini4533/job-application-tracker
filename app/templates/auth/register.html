@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Register — JobTrack{% endblock %}
+
+{% block public_content %}
+
+<div class="auth-page">
+    <div class="auth-card">
+
+        <div class="auth-logo">
+            <span class="brand-icon">
+                <i class="bi bi-briefcase-fill"></i>
+            </span>
+            <span class="brand-text">JobTrack</span>
+        </div>
+
+        <h4 class="auth-title">Create your account</h4>
+
+        <p class="auth-sub">
+            Start tracking your job applications for free
+        </p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} py-2 mb-3"
+                     style="font-size: .85rem;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endwith %}
+
+        <form method="POST">
+
+            <input type="hidden"
+                   name="csrf_token"
+                   value="{{ csrf_token() }}">
+
+            <div class="mb-3">
+                <label class="form-label" for="name">
+                    Full Name
+                </label>
+
+                <input
+                    type="text"
+                    name="name"
+                    id="name"
+                    class="form-control"
+                    required
+                    autofocus
+                    placeholder="Your Name">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="email">
+                    Email address
+                </label>
+
+                <input
+                    type="email"
+                    name="email"
+                    id="email"
+                    class="form-control"
+                    required
+                    placeholder="you@example.com">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="regPw">
+                    Password
+                    <small class="text-muted fw-normal">
+                        (min 6 characters)
+                    </small>
+                </label>
+
+                <div class="input-group">
+                    <input
+                        type="password"
+                        name="password"
+                        id="regPw"
+                        class="form-control"
+                        required
+                        placeholder="Enter password">
+
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        onclick="togglePassword('regPw', this)"
+                        tabindex="-1">
+
+                        <i class="bi bi-eye"></i>
+
+                    </button>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label" for="confirmPw">
+                    Confirm Password
+                </label>
+
+                <input
+                    type="password"
+                    name="confirm_password"
+                    id="confirmPw"
+                    class="form-control"
+                    required
+                    placeholder="Confirm password">
+            </div>
+
+            <button
+                type="submit"
+                class="btn btn-primary w-100">
+
+                Create Account
+
+            </button>
+
+        </form>
+
+        <p class="auth-switch">
+            Already have an account?
+            <a href="{{ url_for('auth.login') }}">Sign in</a>
+        </p>
+
+    </div>
+</div>
+
+{% endblock %}

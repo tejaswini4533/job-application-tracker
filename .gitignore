@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+.env
+instance/job_tracker.db
+# Keep the resumes upload folder but not its contents
+instance/resumes/*
+!instance/resumes/.gitkeep
+migrations/versions/

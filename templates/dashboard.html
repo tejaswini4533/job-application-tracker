@@ -1,0 +1,109 @@
+
+{% extends "base.html" %}
+{% block title %}Dashboard • JobTrack{% endblock %}
+{% block content %}
+<div class="hero mb-4">
+  <div>
+    <div class="eyebrow">CAREER COMMAND CENTER</div>
+    <h1>Job Application Tracker</h1>
+    <p>Track every opportunity from application to offer in one place.</p>
+  </div>
+  <a href="{{ url_for('add_application') }}" class="btn btn-light btn-lg"><i class="bi bi-plus-circle"></i> New Application</a>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg"><div class="stat-card"><span>Total</span><strong>{{ stats.total }}</strong><i class="bi bi-collection"></i></div></div>
+  <div class="col-6 col-lg"><div class="stat-card"><span>Active</span><strong>{{ stats.active }}</strong><i class="bi bi-lightning-charge"></i></div></div>
+  <div class="col-6 col-lg"><div class="stat-card"><span>Interviews</span><strong>{{ stats.interviews }}</strong><i class="bi bi-camera-video"></i></div></div>
+  <div class="col-6 col-lg"><div class="stat-card"><span>Offers</span><strong>{{ stats.offers }}</strong><i class="bi bi-trophy"></i></div></div>
+  <div class="col-6 col-lg"><div class="stat-card"><span>Rejected</span><strong>{{ stats.rejected }}</strong><i class="bi bi-x-circle"></i></div></div>
+</div>
+
+<div class="card app-card mb-4">
+  <div class="card-body">
+    <form class="row g-2 align-items-end">
+      <div class="col-lg-5">
+        <label class="form-label">Search</label>
+        <div class="input-group"><span class="input-group-text"><i class="bi bi-search"></i></span>
+        <input name="q" value="{{ q }}" class="form-control" placeholder="Company, role, location..."></div>
+      </div>
+      <div class="col-lg-3">
+        <label class="form-label">Status</label>
+        <select name="status" class="form-select">
+          <option value="">All statuses</option>
+          {% for s in STATUSES %}<option value="{{ s }}" {% if selected_status==s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-lg-2">
+        <label class="form-label">Sort</label>
+        <select name="sort" class="form-select">
+          <option value="newest" {% if sort=='newest' %}selected{% endif %}>Newest</option>
+          <option value="oldest" {% if sort=='oldest' %}selected{% endif %}>Oldest</option>
+          <option value="company" {% if sort=='company' %}selected{% endif %}>Company</option>
+        </select>
+      </div>
+      <div class="col-lg-2 d-flex gap-2">
+        <button class="btn btn-dark flex-fill"><i class="bi bi-funnel"></i> Filter</button>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-counterclockwise"></i></a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-xl-9">
+    <div class="card app-card">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <div><h5 class="mb-0">My Applications</h5><small class="text-secondary">{{ applications|length }} record(s) shown</small></div>
+        <a class="btn btn-outline-dark btn-sm" href="/api/applications" target="_blank"><i class="bi bi-code-slash"></i> API</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead><tr><th>Company</th><th>Role</th><th>Applied</th><th>Status</th><th>Source</th><th></th></tr></thead>
+          <tbody>
+          {% for a in applications %}
+            <tr>
+              <td><div class="company-name">{{ a.company }}</div><small class="text-secondary">{{ a.location or 'Location not added' }}</small></td>
+              <td><strong>{{ a.role }}</strong><br><small class="text-secondary">{{ a.job_type }}{% if a.salary %} • {{ a.salary }}{% endif %}</small></td>
+              <td>{{ a.applied_date.strftime('%d %b %Y') if a.applied_date else '-' }}</td>
+              <td>
+                <form method="post" action="{{ url_for('update_status', app_id=a.id) }}">
+                  <select name="status" class="form-select form-select-sm status-select status-{{ a.status|lower|replace(' ','-') }}" onchange="this.form.submit()">
+                    {% for s in STATUSES %}<option value="{{ s }}" {% if a.status==s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+                  </select>
+                </form>
+              </td>
+              <td>{{ a.source }}</td>
+              <td class="text-end">
+                <a class="btn btn-sm btn-light" href="{{ url_for('edit_application', app_id=a.id) }}"><i class="bi bi-pencil"></i></a>
+                <form class="d-inline" method="post" action="{{ url_for('delete_application', app_id=a.id) }}" onsubmit="return confirm('Delete this application?')">
+                  <button class="btn btn-sm btn-light text-danger"><i class="bi bi-trash"></i></button>
+                </form>
+              </td>
+            </tr>
+          {% else %}
+            <tr><td colspan="6" class="empty-state"><i class="bi bi-inbox"></i><h5>No applications yet</h5><p>Add your first job application to start tracking.</p><a href="{{ url_for('add_application') }}" class="btn btn-primary">Add Application</a></td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-3">
+    <div class="card app-card">
+      <div class="card-header bg-white"><h5 class="mb-0">Pipeline</h5></div>
+      <div class="card-body">
+      {% for s in STATUSES %}
+        <div class="pipeline-row"><span><span class="dot dot-{{ s|lower|replace(' ','-') }}"></span>{{ s }}</span><strong>{{ status_counts[s] }}</strong></div>
+      {% endfor %}
+      </div>
+    </div>
+    <div class="card app-card mt-4">
+      <div class="card-body">
+        <h6><i class="bi bi-lightbulb"></i> Project insight</h6>
+        <p class="small text-secondary mb-0">Keep recruiter details and notes updated after every interaction. This makes the tracker useful during placement season.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} — JobTrack{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>{{ title }}</h1>
+  <p>{{ 'Update the details for this application.' if application else 'Fill in the details to track a new job application.' }}</p>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-xl-9">
+    <form method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <!-- Job Details -->
+      <div class="card mb-4">
+        <div class="card-header-custom"><h6><i class="bi bi-briefcase"></i> Job Details</h6></div>
+        <div class="card-body p-4">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Company Name <span class="text-danger">*</span></label>
+              <input name="company" required class="form-control" value="{{ application.company if application else '' }}" placeholder="e.g. Google">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Job Title <span class="text-danger">*</span></label>
+              <input name="role" required class="form-control" value="{{ application.role if application else '' }}" placeholder="e.g. Software Engineer">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Location</label>
+              <input name="location" class="form-control" value="{{ application.location if application else '' }}" placeholder="Hyderabad / Remote">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Job Type</label>
+              <select name="job_type" class="form-select">
+                {% for x in JOB_TYPES %}<option {% if (application and application.job_type==x) or (not application and x=='Full-time') %}selected{% endif %}>{{ x }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Source</label>
+              <select name="source" class="form-select">
+                {% for x in SOURCES %}<option {% if (application and application.source==x) or (not application and x=='Other') %}selected{% endif %}>{{ x }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Applied Date</label>
+              <input type="date" name="applied_date" class="form-control" value="{{ application.applied_date.isoformat() if application and application.applied_date else '' }}">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Status</label>
+              <select name="status" class="form-select">
+                {% for s in STATUSES %}<option {% if (application and application.status==s) or (not application and s=='Applied') %}selected{% endif %}>{{ s }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Salary / CTC</label>
+              <input name="salary" class="form-control" value="{{ application.salary if application else '' }}" placeholder="e.g. 6 LPA">
+            </div>
+            <div class="col-12">
+              <label class="form-label">Job URL</label>
+              <input name="job_url" type="url" class="form-control" value="{{ application.job_url if application else '' }}" placeholder="https://...">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recruiter -->
+      <div class="card mb-4">
+        <div class="card-header-custom"><h6><i class="bi bi-person-lines-fill"></i> Recruiter / Contact</h6></div>
+        <div class="card-body p-4">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Contact Name</label>
+              <input name="contact_name" class="form-control" value="{{ application.contact_name if application else '' }}" placeholder="Recruiter name">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Contact Email</label>
+              <input name="contact_email" type="email" class="form-control" value="{{ application.contact_email if application else '' }}" placeholder="recruiter@company.com">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Follow-up -->
+      <div class="card mb-4">
+        <div class="card-header-custom"><h6><i class="bi bi-bell"></i> Follow-up</h6></div>
+        <div class="card-body p-4">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label">Follow-up Date</label>
+              <input type="date" name="follow_up_date" class="form-control" value="{{ application.follow_up_date.isoformat() if application and application.follow_up_date else '' }}">
+            </div>
+            <div class="col-md-8">
+              <label class="form-label">Follow-up Notes</label>
+              <input name="follow_up_notes" class="form-control" value="{{ application.follow_up_notes if application else '' }}" placeholder="e.g. Send thank-you email">
+            </div>
+            {% if application %}
+            <div class="col-12">
+              <div class="form-check">
+                <input type="checkbox" name="follow_up_done" class="form-check-input" id="fuDone" {% if application.follow_up_done %}checked{% endif %}>
+                <label class="form-check-label" for="fuDone" style="font-size:.875rem;">Mark follow-up as completed</label>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Resume -->
+      <div class="card mb-4">
+        <div class="card-header-custom"><h6><i class="bi bi-file-earmark-person"></i> Resume <span class="text-muted fw-normal" style="font-size:.75rem;">(optional)</span></h6></div>
+        <div class="card-body p-4">
+          <div class="row g-3 align-items-end">
+            <div class="col-md-6">
+              <label class="form-label">Link a Resume</label>
+              <select name="resume_id" class="form-select">
+                <option value="">— No resume —</option>
+                {% for r in resumes %}<option value="{{ r.id }}" {% if application and application.resume_id==r.id %}selected{% endif %}>{{ r.original_name }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <a href="{{ url_for('resumes.index') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-upload"></i> Manage Resumes</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="card mb-4">
+        <div class="card-header-custom"><h6><i class="bi bi-journal-text"></i> Notes</h6></div>
+        <div class="card-body p-4">
+          <textarea name="notes" rows="4" class="form-control" placeholder="Interview prep notes, recruiter feedback, follow-up reminders…">{{ application.notes if application else '' }}</textarea>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between">
+        <a href="{{ url_for('applications.index') }}" class="btn btn-outline-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary px-4"><i class="bi bi-check2-circle"></i> Save Application</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Interviews — JobTrack{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Interviews</h1>
+  <p>Stay prepared for your upcoming interviews.</p>
+</div>
+
+{% if upcoming %}
+<div class="card mb-4">
+  <div class="card-header-custom">
+    <h6><i class="bi bi-calendar-check"></i> Upcoming <span class="badge bg-primary ms-1" style="font-size:.7rem;">{{ upcoming|length }}</span></h6>
+  </div>
+  <div class="table-responsive">
+    <table class="table dash-table mb-0">
+      <thead><tr><th>Date & Time</th><th>Company</th><th>Role</th><th>Type</th><th>Round</th><th>Location / Link</th><th></th></tr></thead>
+      <tbody>
+      {% for iv in upcoming %}
+      <tr>
+        <td>
+          <div class="fw-600">{{ iv.interview_date.strftime('%d %b %Y') }}</div>
+          {% if iv.interview_time %}<small class="text-muted"><i class="bi bi-clock"></i> {{ iv.interview_time }}</small>{% endif %}
+        </td>
+        <td><strong>{{ iv.company }}</strong></td>
+        <td class="text-muted">{{ iv.role }}</td>
+        <td class="text-muted small">{{ iv.interview_type }}</td>
+        <td class="text-muted small">{{ iv.interview_round }}</td>
+        <td class="text-muted small">
+          {% if iv.location_or_link %}
+            {% if iv.location_or_link.startswith('http') %}
+              <a href="{{ iv.location_or_link }}" target="_blank" rel="noopener"><i class="bi bi-link-45deg"></i> Join</a>
+            {% else %}{{ iv.location_or_link }}{% endif %}
+          {% else %}—{% endif %}
+        </td>
+        <td class="text-end">
+          <a href="{{ url_for('interviews.edit', interview_id=iv.id) }}" class="btn btn-xs btn-light"><i class="bi bi-pencil"></i></a>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="alert-banner info mb-4"><i class="bi bi-calendar-x"></i> No upcoming interviews scheduled.</div>
+{% endif %}
+
+{% if past %}
+<div class="card">
+  <div class="card-header-custom"><h6><i class="bi bi-clock-history"></i> Past Interviews</h6></div>
+  <div class="table-responsive">
+    <table class="table dash-table mb-0">
+      <thead><tr><th>Date</th><th>Company</th><th>Role</th><th>Type</th><th>Round</th><th>Result</th><th></th></tr></thead>
+      <tbody>
+      {% for iv in past %}
+      <tr>
+        <td class="text-muted small">{{ iv.interview_date.strftime('%d %b %Y') }}</td>
+        <td><strong>{{ iv.company }}</strong></td>
+        <td class="text-muted">{{ iv.role }}</td>
+        <td class="text-muted small">{{ iv.interview_type }}</td>
+        <td class="text-muted small">{{ iv.interview_round }}</td>
+        <td>
+          <span class="badge {% if iv.result=='Passed' %}bg-success{% elif iv.result=='Failed' %}bg-danger{% elif iv.result=='Pending' %}bg-warning text-dark{% else %}bg-secondary{% endif %}" style="font-size:.7rem;">{{ iv.result }}</span>
+        </td>
+        <td class="text-end">
+          <a href="{{ url_for('interviews.edit', interview_id=iv.id) }}" class="btn btn-xs btn-light"><i class="bi bi-pencil"></i></a>
+          <form class="d-inline" method="post" action="{{ url_for('interviews.delete', interview_id=iv.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-xs btn-light text-danger" onclick="return confirm('Delete this interview?')"><i class="bi bi-trash"></i></button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% if not upcoming and not past %}
+<div class="empty-state py-5">
+  <i class="bi bi-camera-video-off"></i>
+  <h5>No interviews yet</h5>
+  <p>Add interviews from an application's detail page.</p>
+  <a href="{{ url_for('applications.index') }}" class="btn btn-primary btn-sm">View Applications</a>
+</div>
+{% endif %}
+{% endblock %}

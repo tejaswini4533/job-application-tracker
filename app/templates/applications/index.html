@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}Applications — JobTrack{% endblock %}
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-start flex-wrap gap-3">
+  <div><h1>Applications</h1><p>Manage and track all your job applications.</p></div>
+  <a href="{{ url_for('applications.add') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add Application</a>
+</div>
+
+<div class="card mb-4">
+  <div class="card-body py-3">
+    <form class="row g-2 align-items-end">
+      <div class="col-lg-4">
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input name="q" value="{{ q }}" class="form-control" placeholder="Search company, role, location…">
+        </div>
+      </div>
+      <div class="col-lg-2">
+        <select name="status" class="form-select">
+          <option value="">All Statuses</option>
+          {% for s in STATUSES %}<option value="{{ s }}" {% if selected_status==s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-lg-2">
+        <select name="job_type" class="form-select">
+          <option value="">All Types</option>
+          {% for t in JOB_TYPES %}<option value="{{ t }}" {% if selected_job_type==t %}selected{% endif %}>{{ t }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-lg-2">
+        <select name="sort" class="form-select">
+          <option value="newest" {% if sort=='newest' %}selected{% endif %}>Newest First</option>
+          <option value="oldest" {% if sort=='oldest' %}selected{% endif %}>Oldest First</option>
+          <option value="company" {% if sort=='company' %}selected{% endif %}>Company A–Z</option>
+          <option value="status"  {% if sort=='status'  %}selected{% endif %}>By Status</option>
+        </select>
+      </div>
+      <div class="col-lg-2 d-flex gap-2">
+        <button class="btn btn-dark flex-fill"><i class="bi bi-funnel"></i> Filter</button>
+        <a href="{{ url_for('applications.index') }}" class="btn btn-outline-secondary" title="Reset"><i class="bi bi-arrow-counterclockwise"></i></a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header-custom d-flex justify-content-between align-items-center">
+    <h6 class="mb-0"><i class="bi bi-collection"></i> My Applications <span class="badge bg-secondary ms-1" style="font-size:.7rem;">{{ pagination.total }}</span></h6>
+  </div>
+  {% if applications %}
+  <div class="table-responsive">
+    <table class="table dash-table mb-0">
+      <thead><tr><th>Company</th><th>Role</th><th>Type</th><th>Applied</th><th>Status</th><th>Follow-up</th><th></th></tr></thead>
+      <tbody>
+      {% for a in applications %}
+      <tr>
+        <td>
+          <div class="fw-600">{{ a.company }}</div>
+          <small class="text-muted">{{ a.location or '—' }}</small>
+        </td>
+        <td>
+          <div>{{ a.role }}</div>
+          {% if a.salary %}<small class="text-muted">{{ a.salary }}</small>{% endif %}
+        </td>
+        <td><span class="badge bg-light text-dark border" style="font-size:.72rem;font-weight:500;">{{ a.job_type }}</span></td>
+        <td class="text-muted small">{{ a.applied_date.strftime('%d %b %Y') if a.applied_date else '—' }}</td>
+        <td>
+          <form method="post" action="{{ url_for('applications.update_status', app_id=a.id) }}" class="d-inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <select name="status" class="status-select status-{{ a.status|lower|replace(' ','-') }}" onchange="this.form.submit()">
+              {% for s in STATUSES %}<option value="{{ s }}" {% if a.status==s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+            </select>
+          </form>
+        </td>
+        <td>
+          {% if a.follow_up_date and not a.follow_up_done %}
+            {% if a.is_follow_up_overdue %}
+              <span class="badge bg-danger" style="font-size:.7rem;"><i class="bi bi-exclamation-circle"></i> {{ a.follow_up_date.strftime('%d %b') }}</span>
+            {% else %}
+              <span class="badge bg-warning text-dark" style="font-size:.7rem;">{{ a.follow_up_date.strftime('%d %b') }}</span>
+            {% endif %}
+          {% elif a.follow_up_done %}
+            <span class="badge bg-success" style="font-size:.7rem;"><i class="bi bi-check"></i> Done</span>
+          {% else %}
+            <span class="text-muted small">—</span>
+          {% endif %}
+        </td>
+        <td class="text-end" style="white-space:nowrap;">
+          <a href="{{ url_for('applications.detail', app_id=a.id) }}" class="btn btn-xs btn-light" title="View"><i class="bi bi-eye"></i></a>
+          <a href="{{ url_for('applications.edit', app_id=a.id) }}" class="btn btn-xs btn-light" title="Edit"><i class="bi bi-pencil"></i></a>
+          <button class="btn btn-xs btn-light text-danger" title="Delete"
+            onclick="confirmDelete('{{ url_for('applications.delete', app_id=a.id) }}','{{ a.company|replace("'","") }} — {{ a.role|replace("'","") }}')">
+            <i class="bi bi-trash"></i>
+          </button>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if pagination.pages > 1 %}
+  <div class="card-footer bg-white d-flex justify-content-between align-items-center py-2 px-4">
+    <small class="text-muted">Showing {{ ((pagination.page-1)*10)+1 }}–{{ [pagination.page*10, pagination.total]|min }} of {{ pagination.total }}</small>
+    <nav><ul class="pagination pagination-sm mb-0">
+      <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+        <a class="page-link" href="?page={{ pagination.prev_num }}&q={{ q }}&status={{ selected_status }}&job_type={{ selected_job_type }}&sort={{ sort }}">‹</a>
+      </li>
+      {% for p in pagination.iter_pages() %}
+        {% if p %}<li class="page-item {% if p==pagination.page %}active{% endif %}"><a class="page-link" href="?page={{ p }}&q={{ q }}&status={{ selected_status }}&job_type={{ selected_job_type }}&sort={{ sort }}">{{ p }}</a></li>
+        {% else %}<li class="page-item disabled"><span class="page-link">…</span></li>{% endif %}
+      {% endfor %}
+      <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+        <a class="page-link" href="?page={{ pagination.next_num }}&q={{ q }}&status={{ selected_status }}&job_type={{ selected_job_type }}&sort={{ sort }}">›</a>
+      </li>
+    </ul></nav>
+  </div>
+  {% endif %}
+  {% else %}
+  <div class="empty-state py-5">
+    <i class="bi bi-inbox"></i>
+    <h5>No applications found</h5>
+    <p>{% if q or selected_status or selected_job_type %}Try adjusting your filters.{% else %}Start by adding your first job application.{% endif %}</p>
+    {% if not q and not selected_status %}<a href="{{ url_for('applications.add') }}" class="btn btn-primary btn-sm">Add Application</a>{% endif %}
+  </div>
+  {% endif %}
+</div>
+
+<!-- Delete modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <h6 class="modal-title text-danger"><i class="bi bi-trash"></i> Delete Application</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <p class="mb-1 small text-muted">You are about to delete:</p>
+        <strong id="deleteTarget" style="font-size:.9rem;"></strong>
+        <p class="text-muted small mt-2 mb-0">This action cannot be undone.</p>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <form id="deleteForm" method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-sm btn-danger">Delete</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

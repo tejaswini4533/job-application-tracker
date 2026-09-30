@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}Analytics — JobTrack{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Analytics</h1>
+  <p>Insights into your job search performance.</p>
+</div>
+
+{% if stats.total == 0 %}
+<div class="empty-state py-5">
+  <i class="bi bi-bar-chart-line"></i>
+  <h5>No data yet</h5>
+  <p>Add job applications to start seeing analytics.</p>
+  <a href="{{ url_for('applications.add') }}" class="btn btn-primary btn-sm">Add Application</a>
+</div>
+{% else %}
+
+<!-- Rate cards -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-label">Total Applications</div>
+      <div class="stat-value">{{ stats.total }}</div>
+      <i class="bi bi-collection stat-icon"></i>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-label">Response Rate</div>
+      <div class="stat-value">{{ stats.response_rate }}%</div>
+      <i class="bi bi-reply stat-icon blue"></i>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-label">Interview Rate</div>
+      <div class="stat-value">{{ stats.interview_rate }}%</div>
+      <i class="bi bi-camera-video stat-icon purple"></i>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-label">Offer Rate</div>
+      <div class="stat-value">{{ stats.offer_rate }}%</div>
+      <i class="bi bi-trophy stat-icon green"></i>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card mb-4">
+      <div class="card-header-custom"><h6><i class="bi bi-bar-chart-line"></i> Applications Over Time</h6></div>
+      <div class="card-body p-4"><canvas id="monthlyChart" height="100"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-header-custom"><h6><i class="bi bi-building"></i> Top Companies Applied To</h6></div>
+      <div class="card-body p-4">
+        {% if top_companies %}
+        {% set max_count = top_companies[0][1] %}
+        {% for company, count in top_companies %}
+        <div class="d-flex align-items-center gap-3 mb-2">
+          <div style="width:120px;font-size:.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ company }}</div>
+          <div class="flex-fill" style="background:var(--border-light);border-radius:4px;height:8px;">
+            <div style="width:{{ (count/max_count*100)|int }}%;background:var(--primary);height:8px;border-radius:4px;"></div>
+          </div>
+          <div style="width:24px;text-align:right;font-size:.8rem;color:var(--text-2);">{{ count }}</div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p class="text-muted small">No data.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card mb-4">
+      <div class="card-header-custom"><h6><i class="bi bi-pie-chart"></i> Status Distribution</h6></div>
+      <div class="card-body p-4"><canvas id="statusChart" height="220"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-header-custom"><h6><i class="bi bi-diagram-3"></i> Application Sources</h6></div>
+      <div class="card-body p-4"><canvas id="sourceChart" height="220"></canvas></div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if stats.total > 0 %}
+<script>
+const monthlyData  = {{ monthly_data | tojson }};
+const statusData   = {{ stats | tojson }};
+const sourceData   = {{ source_data | tojson }};
+const STATUSES     = {{ STATUSES | tojson }};
+const SOURCES      = {{ SOURCES | tojson }};
+const STATUS_COLORS = {'Saved':'#94a3b8','Applied':'#3b82f6','Shortlisted':'#f59e0b','Interview':'#10b981','Offer':'#059669','Rejected':'#ef4444'};
+const SOURCE_COLORS = ['#4f46e5','#7c3aed','#2563eb','#0891b2','#059669','#d97706','#dc2626','#6b7280'];
+
+new Chart(document.getElementById('monthlyChart'), {
+  type: 'bar',
+  data: { labels: monthlyData.map(d=>d.month), datasets: [{ label:'Applications', data: monthlyData.map(d=>d.count), backgroundColor:'#4f46e5', borderRadius:6, borderSkipped:false }] },
+  options: { responsive:true, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks:{ stepSize:1 }, grid:{ color:'#f0f1f3' } }, x:{ grid:{ display:false } } } }
+});
+
+new Chart(document.getElementById('statusChart'), {
+  type: 'doughnut',
+  data: { labels: STATUSES, datasets: [{ data: STATUSES.map(s=>statusData[s]||0), backgroundColor: STATUSES.map(s=>STATUS_COLORS[s]), borderWidth:2, borderColor:'#fff' }] },
+  options: { responsive:true, plugins:{ legend:{ position:'bottom', labels:{ boxWidth:10, padding:10, font:{ size:11 } } } }, cutout:'65%' }
+});
+
+const sourceLabels = SOURCES.filter(s => sourceData[s] > 0);
+const sourceValues = sourceLabels.map(s => sourceData[s]);
+new Chart(document.getElementById('sourceChart'), {
+  type: 'doughnut',
+  data: { labels: sourceLabels, datasets: [{ data: sourceValues, backgroundColor: SOURCE_COLORS.slice(0, sourceLabels.length), borderWidth:2, borderColor:'#fff' }] },
+  options: { responsive:true, plugins:{ legend:{ position:'bottom', labels:{ boxWidth:10, padding:10, font:{ size:11 } } } }, cutout:'65%' }
+});
+</script>
+{% endif %}
+{% endblock %}

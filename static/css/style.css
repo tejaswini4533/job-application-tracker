@@ -1,0 +1,21 @@
+
+:root{--ink:#172033;--muted:#667085;--primary:#4f46e5;--line:#e7eaf0;--bg:#f6f7fb}
+body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif}
+.app-nav{background:#fff;border-bottom:1px solid var(--line);height:70px}
+.navbar-brand{font-size:1.35rem;color:var(--ink)}
+.brand-icon{display:inline-grid;place-items:center;width:35px;height:35px;border-radius:10px;background:var(--primary);color:white;margin-right:8px}
+.nav-btn{color:var(--ink);background:#f7f7fa}
+.hero{background:linear-gradient(120deg,#312e81,#4f46e5 55%,#7c3aed);border-radius:22px;padding:32px;color:white;display:flex;align-items:center;justify-content:space-between;box-shadow:0 15px 35px rgba(79,70,229,.18)}
+.hero h1{font-weight:800;font-size:2rem;margin:.3rem 0}.hero p{opacity:.82;margin:0}.eyebrow{font-size:.72rem;letter-spacing:.14em;font-weight:800;opacity:.7}
+.stat-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;position:relative;min-height:105px;box-shadow:0 3px 14px rgba(16,24,40,.03)}
+.stat-card span{display:block;color:var(--muted);font-size:.82rem}.stat-card strong{font-size:1.8rem;display:block;margin-top:7px}.stat-card i{position:absolute;right:17px;top:20px;font-size:1.4rem;color:#98a2b3}
+.app-card{border:1px solid var(--line);border-radius:16px;box-shadow:0 4px 18px rgba(16,24,40,.04);overflow:hidden}
+.form-control,.form-select{border-color:#dfe3ea;border-radius:10px;padding:.65rem .8rem}.form-control:focus,.form-select:focus{border-color:#8b83f5;box-shadow:0 0 0 .2rem rgba(79,70,229,.1)}
+.btn-primary{background:var(--primary);border-color:var(--primary)}
+.table>thead{background:#fafbfc}.table th{font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;color:#667085;font-weight:700;padding:14px}.table td{padding:16px 14px;border-color:#eef0f3}
+.company-name{font-weight:700}.status-select{min-width:125px;font-weight:600}
+.status-applied{background:#eef2ff}.status-screening{background:#fff7ed}.status-interview{background:#ecfdf3}.status-assessment{background:#f5f3ff}.status-offer{background:#ecfdf3}.status-rejected{background:#fff1f2}.status-withdrawn{background:#f2f4f7}
+.pipeline-row{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid #f0f1f4}.pipeline-row:last-child{border:0}.dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:9px;background:#98a2b3}.dot-applied{background:#6366f1}.dot-screening{background:#f59e0b}.dot-interview{background:#10b981}.dot-assessment{background:#8b5cf6}.dot-offer{background:#059669}.dot-rejected{background:#ef4444}.dot-withdrawn{background:#667085}
+.empty-state{text-align:center;padding:55px!important;color:var(--muted)}.empty-state i{font-size:2.5rem}.empty-state h5{color:var(--ink);margin-top:12px}
+.section-title{font-weight:700;margin-bottom:16px}
+@media(max-width:768px){.hero{padding:24px;display:block}.hero .btn{margin-top:18px}.app-nav{height:auto;padding:12px 0}.table{min-width:850px}}

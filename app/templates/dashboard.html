@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — JobTrack{% endblock %}
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-start flex-wrap gap-3">
+  <div>
+    <div class="greeting">Good day, {{ current_user.name.split()[0] }} 👋</div>
+    <p class="text-muted mt-1 mb-0" style="font-size:.9rem;">Here's your job search overview.</p>
+  </div>
+  <a href="{{ url_for('applications.add') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add Application</a>
+</div>
+
+{% if overdue_followups %}
+<div class="alert-banner danger mb-4">
+  <i class="bi bi-exclamation-triangle-fill"></i>
+  <span><strong>{{ overdue_followups|length }} overdue follow-up{{ 's' if overdue_followups|length > 1 }}.</strong> <a href="{{ url_for('followups.index') }}">View now →</a></span>
+</div>
+{% endif %}
+
+<div class="row g-3 mb-4">
+  {% set cards = [('Total','total','bi-collection',''),('Applied','Applied','bi-send','blue'),('Shortlisted','Shortlisted','bi-star','orange'),('Interviews','Interview','bi-camera-video','purple'),('Offers','Offer','bi-trophy','green'),('Rejected','Rejected','bi-x-circle','red')] %}
+  {% for label, key, icon, color in cards %}
+  <div class="col-6 col-sm-4 col-lg-2">
+    <div class="stat-card">
+      <div class="stat-label">{{ label }}</div>
+      <div class="stat-value">{{ stats.get(key, 0) }}</div>
+      <i class="bi {{ icon }} stat-icon {{ color }}"></i>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="row g-4">
+  <div class="col-xl-8">
+    <div class="card mb-4">
+      <div class="card-header-custom"><h6><i class="bi bi-bar-chart-line"></i> Applications by Month</h6></div>
+      <div class="card-body p-4"><canvas id="monthlyChart" height="90"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-header-custom d-flex justify-content-between align-items-center">
+        <h6><i class="bi bi-clock-history"></i> Recent Applications</h6>
+        <a href="{{ url_for('applications.index') }}" class="btn btn-xs btn-outline-primary">View All</a>
+      </div>
+      {% if recent_apps %}
+      <div class="table-responsive">
+        <table class="table dash-table mb-0">
+          <thead><tr><th>Company</th><th>Role</th><th>Status</th><th>Applied</th><th></th></tr></thead>
+          <tbody>
+          {% for a in recent_apps %}
+          <tr>
+            <td><div class="fw-600">{{ a.company }}</div><small class="text-muted">{{ a.location or '—' }}</small></td>
+            <td class="text-muted">{{ a.role }}</td>
+            <td><span class="status-badge status-{{ a.status|lower|replace(' ','-') }}">{{ a.status }}</span></td>
+            <td class="text-muted small">{{ a.applied_date.strftime('%d %b %Y') if a.applied_date else '—' }}</td>
+            <td class="text-end"><a href="{{ url_for('applications.detail', app_id=a.id) }}" class="btn btn-xs btn-light"><i class="bi bi-arrow-right"></i></a></td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <i class="bi bi-inbox"></i><h5>No applications yet</h5>
+        <p>Start tracking your job search by adding your first application.</p>
+        <a href="{{ url_for('applications.add') }}" class="btn btn-primary btn-sm">Add Application</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-xl-4">
+    <div class="card mb-4">
+      <div class="card-header-custom"><h6><i class="bi bi-pie-chart"></i> Status Distribution</h6></div>
+      <div class="card-body p-4">
+        {% if stats.total > 0 %}
+        <canvas id="statusChart" height="200"></canvas>
+        {% else %}
+        <div class="empty-state py-3"><i class="bi bi-pie-chart"></i><p class="small">Add applications to see distribution.</p></div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-header-custom d-flex justify-content-between align-items-center">
+        <h6><i class="bi bi-calendar-event"></i> Upcoming Interviews</h6>
+        <a href="{{ url_for('interviews.index') }}" class="btn btn-xs btn-outline-primary">All</a>
+      </div>
+      {% if upcoming_interviews %}
+        {% for iv in upcoming_interviews %}
+        <div class="interview-item">
+          <div class="interview-date-badge">
+            <span>{{ iv.interview_date.strftime('%d') }}</span>
+            <small>{{ iv.interview_date.strftime('%b') }}</small>
+          </div>
+          <div class="interview-info">
+            <div class="fw-600" style="font-size:.85rem;">{{ iv.company }}</div>
+            <div class="text-muted" style="font-size:.78rem;">{{ iv.role }}</div>
+            <div class="text-muted" style="font-size:.75rem;">{{ iv.interview_type }}{% if iv.interview_time %} · {{ iv.interview_time }}{% endif %}</div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+      <div class="empty-state py-3"><i class="bi bi-calendar-x"></i><p class="small">No upcoming interviews.</p></div>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <div class="card-header-custom"><h6><i class="bi bi-funnel"></i> Pipeline</h6></div>
+      {% for s in STATUSES %}
+      <div class="pipeline-row">
+        <span><span class="dot dot-{{ s|lower|replace(' ','-') }}"></span>{{ s }}</span>
+        <strong>{{ stats.get(s, 0) }}</strong>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const monthlyData = {{ monthly_data | tojson }};
+const statusData  = {{ stats | tojson }};
+const STATUSES    = {{ STATUSES | tojson }};
+const STATUS_COLORS = {'Saved':'#94a3b8','Applied':'#3b82f6','Shortlisted':'#f59e0b','Interview':'#10b981','Offer':'#059669','Rejected':'#ef4444'};
+
+new Chart(document.getElementById('monthlyChart'), {
+  type: 'bar',
+  data: {
+    labels: monthlyData.map(d => d.month),
+    datasets: [{ label: 'Applications', data: monthlyData.map(d => d.count), backgroundColor: '#4f46e5', borderRadius: 6, borderSkipped: false }]
+  },
+  options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#f0f1f3' } }, x: { grid: { display: false } } } }
+});
+
+const sc = document.getElementById('statusChart');
+if (sc) {
+  new Chart(sc, {
+    type: 'doughnut',
+    data: {
+      labels: STATUSES,
+      datasets: [{ data: STATUSES.map(s => statusData[s] || 0), backgroundColor: STATUSES.map(s => STATUS_COLORS[s]), borderWidth: 2, borderColor: '#fff' }]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 12, font: { size: 11 } } } }, cutout: '68%' }
+  });
+}
+</script>
+{% endblock %}
